@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEditor.SceneManagement;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class Jet : MonoBehaviour
@@ -18,13 +15,15 @@ public class Jet : MonoBehaviour
 
     float TIME_DELAY = 2f;
 
-    [SerializeField] AudioClip[] audioClip; 
+    [SerializeField] AudioClip[] audioClip;
+
+    [SerializeField] ParticleSystem[] particleSystem;
 
 
     enum State { Alive, Die, Transcending}
     State state = State.Alive;
 
-    // Start is called before the first frame update
+    
     void Start()
     {
         rigidbody = GetComponent<Rigidbody>();
@@ -32,27 +31,14 @@ public class Jet : MonoBehaviour
         currentScene = SceneManager.GetActiveScene().buildIndex;
     }
 
-    // Update is called once per frame
+
     void Update()
     {
-        switch (state)
+
+        if (state == State.Alive)
         {
-            case State.Alive:
-                Thrust();
-                Rotate();
-                break;
-
-            case State.Transcending:
-                audioSource.PlayOneShot(audioClip[1]);
-                break;
-
-            case State.Die:
-                audioSource.PlayOneShot(audioClip[2]);
-                break;
-
-            default:
-                audioSource.Stop();
-                break;
+            Thrust();
+            Rotate();
         }
     }
 
@@ -61,21 +47,27 @@ public class Jet : MonoBehaviour
         if (Input.GetKey(KeyCode.Space))
         {
             rigidbody.AddRelativeForce(Vector3.up * THRUST_FORCE * Time.deltaTime);
+            
             if (!audioSource.isPlaying)
             {
+                // audio and particle effect is handled
                 audioSource.PlayOneShot(audioClip[0]);
+                particleSystem[0].Play();
             }
 
         }
         else
         {
+            // audio and particle effect is handled
             audioSource.Stop();
+            particleSystem[0].Stop();
         }
     }
 
     private void Rotate()
     {
         rigidbody.freezeRotation = true;
+
         if (Input.GetKey(KeyCode.RightArrow))
         {
             transform.Rotate(-Vector3.forward * ROTATE_SPEED * Time.deltaTime);
@@ -88,6 +80,7 @@ public class Jet : MonoBehaviour
         {
             rigidbody.AddRelativeForce(Vector3.zero);
         }
+
         rigidbody.freezeRotation = true;
     }
 
@@ -99,11 +92,30 @@ public class Jet : MonoBehaviour
         {
             case "Wall":
                 state = State.Die;
+                
+                // audio is handled
+                audioSource.Stop();
+                audioSource.PlayOneShot(audioClip[2]);
+
+                // particle effect is handled
+                particleSystem[0].Stop();
+                particleSystem[1].Play();
+                
+                // next scene is handled
                 Invoke("RestartScene", TIME_DELAY);
                 break;
 
             case "Finish":
                 state = State.Transcending;
+
+                // audio is handled
+                audioSource.Stop();
+                audioSource.PlayOneShot(audioClip[1]);
+
+                // particle is handled
+                particleSystem[0].Stop();
+
+                // next scene is handled
                 Invoke("CheckForNextLevel", TIME_DELAY);
                 break;
         }
