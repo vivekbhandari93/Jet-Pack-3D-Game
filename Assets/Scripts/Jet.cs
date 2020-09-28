@@ -11,7 +11,7 @@ public class Jet : MonoBehaviour
     [SerializeField] float ROTATE_SPEED = 200f;
 
     int currentScene;
-    [SerializeField] int lastLevelIndex = 3;
+    [SerializeField] int lastLevelIndex = 4;
 
     float TIME_DELAY = 2f;
 
